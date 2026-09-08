@@ -8,14 +8,18 @@
 ## Architecture Specifications
 - **Frontend**: Next.js 14+ (App Router), React, Tailwind CSS, Lucide Icons.
 - **Backend API**: Python FastAPI exposing REST endpoints for the UI, consuming local MCP endpoints.
-- **Embeddings**: Gemini `text-embedding-004` model via Google GenAI SDK.
+- **Embeddings**: Gemini `gemini-embedding-001` (3072-dim) via Google GenAI SDK.
+- **Generation**: Claude `claude-sonnet-5` via the Anthropic SDK. Anthropic has no embeddings
+  endpoint, so the embedding and generation providers are deliberately different.
 - **Vector DB**: Local Qdrant instance (`http://localhost:6333`).
 - **Google Drive Integration**: Fixed Target Folder ID: `1RxJbIKBJ1SfiPO4wj4skXbxgaIYguUO4`.
 
 ## Environment Variables
-- `GEMINI_API_KEY`: `AIzaSyAzbBtYPJf-5COuYWVYMY5kQ_DjQoS7mKs`
-- `GOOGLE_DRIVE_FOLDER_ID`: `1RxJbIKBJ1SfiPO4wj4skXbxgaIYguUO4`
-- `QDRANT_URL`: `http://localhost:6333`
+Environment variables are defined in `.env` (gitignored, local values) with `.env.example` as the checked-in template. Required variables:
+- `GEMINI_API_KEY`: Your Gemini API key (embeddings).
+- `CLAUDE_API_KEY`: Your Anthropic API key (answer generation).
+- `GOOGLE_DRIVE_FOLDER_ID`: Target Google Drive folder ID.
+- `QDRANT_URL`: Local Qdrant instance URL.
 
 ## Verification Commands
 - `npm run lint` & `npm run build` (Frontend)
