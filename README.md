@@ -18,7 +18,7 @@ Google Drive folder (PDFs)
         │
         ▼
    POST /api/chat
-        │  embed query → top-6 vector search → grounded generation
+        │  embed query (Gemini) → top-6 vector search → generation (Claude)
         ▼
    { answer, citations[] }  →  Next.js UI → citation badge → PDF preview modal
 ```
@@ -34,7 +34,8 @@ The key design decision is that **chunks never span a page boundary**. Each chun
 | Node.js 18+ | Frontend (developed against v26) |
 | Python 3.11+ | Backend (developed against 3.13) |
 | Docker | For the local Qdrant instance |
-| Gemini API key | From [Google AI Studio](https://aistudio.google.com/apikey) |
+| Gemini API key | From [Google AI Studio](https://aistudio.google.com/apikey) — embeddings |
+| Anthropic API key | From the [Claude Console](https://console.anthropic.com/) — answer generation |
 | Google Cloud service account | JSON key, for Drive access |
 
 ---
@@ -49,7 +50,8 @@ cp .env.example .env
 
 | Variable | Purpose |
 |---|---|
-| `GEMINI_API_KEY` | Gemini API key for embeddings and generation |
+| `GEMINI_API_KEY` | Gemini API key for embeddings |
+| `CLAUDE_API_KEY` | Anthropic API key for answer generation |
 | `GOOGLE_DRIVE_FOLDER_ID` | The **only** Drive folder the app is allowed to read |
 | `QDRANT_URL` | Local Qdrant instance (default `http://localhost:6333`) |
 | `QDRANT_COLLECTION` | Collection name (default `drive_documents`) |
@@ -106,7 +108,8 @@ backend/app/
 └── services/
     ├── drive_service.py    Google Drive access (folder-restricted)
     ├── chunking.py         Page-aware PDF chunking
-    ├── gemini_service.py   Embeddings + grounded generation
+    ├── gemini_service.py   Embeddings
+    ├── claude_service.py   Grounded answer generation
     └── qdrant_service.py   Vector upsert/search/scroll
 ```
 
@@ -135,14 +138,24 @@ That URL is directly embeddable in an iframe, which is what the preview modal us
 
 #### `services/gemini_service.py`
 
-Wraps the `google-genai` SDK for both halves of the pipeline:
+Wraps the `google-genai` SDK for **embeddings only** — `gemini-embedding-001`, batched at 100 inputs per call (the API's `batchEmbedContents` hard cap).
 
-- **Embeddings** — `gemini-embedding-001`, batched at 100 inputs per call (the API's `batchEmbedContents` hard cap).
-- **Generation** — `gemini-flash-latest`, prompted with the retrieved excerpts and instructed to cite every factual claim inline as `[DocName, p. X]`, or to say it doesn't know rather than guess.
+Calls are wrapped in `tenacity` retry with exponential backoff (up to 6 attempts, 2s→60s), triggered **only** on HTTP 429. Non-rate-limit errors surface immediately rather than being retried pointlessly.
 
-Both calls are wrapped in `tenacity` retry with exponential backoff (up to 6 attempts, 2s→60s), triggered **only** on HTTP 429. Non-rate-limit errors surface immediately rather than being retried pointlessly.
+> The model ID matters here: `text-embedding-004` is retired and returns 404s.
 
-> The model IDs matter here: `text-embedding-004` and `gemini-2.0-flash` are both retired and return 404s. `gemini-flash-latest` is an alias that tracks the current stable Flash model, so it won't go stale the same way.
+#### `services/claude_service.py`
+
+Wraps the `anthropic` SDK for grounded generation — `claude-sonnet-5`, prompted with the retrieved excerpts and instructed to cite every factual claim inline as `[DocName, p. X]`, or to say it doesn't know rather than guess.
+
+Two deliberate differences from the Gemini service:
+
+- **The citation contract lives in the `system` prompt**, not the user turn. Excerpt text comes from ingested PDFs, so keeping instructions out of the content channel means a document can't restate the rules.
+- **No `tenacity` wrapper.** The Anthropic SDK already retries 429s and 5xx internally with backoff; layering `tenacity` on top would compound the delays.
+
+Because adaptive thinking is on by default for this model, the response can lead with thinking blocks — only `text` blocks are joined into the answer.
+
+> **Why two providers?** Anthropic does not offer an embedding model ([their docs](https://platform.claude.com/docs/en/build-with-claude/embeddings) say so directly and point at Voyage AI). Embeddings therefore stay on Gemini, which also avoids re-indexing: changing embedding providers changes vector dimensionality and would force rebuilding the Qdrant collection from scratch.
 
 #### `services/qdrant_service.py`
 
@@ -160,7 +173,7 @@ Thin wrapper over `qdrant-client`: `ensure_collection()`, `upsert_chunks()`, `se
 
 #### Tests (`backend/tests/`)
 
-12 tests, all external SDKs mocked — no network or credentials required.
+17 tests, all external SDKs mocked — no network or credentials required.
 
 | File | Covers |
 |---|---|
@@ -168,6 +181,7 @@ Thin wrapper over `qdrant-client`: `ensure_collection()`, `upsert_chunks()`, `se
 | `test_drive_service.py` | Folder restriction on both list and download paths |
 | `test_chat.py` | Citation response shape, empty-index behavior (via dependency overrides) |
 | `test_gemini_service.py` | Retries on 429 then succeeds; does *not* retry non-429 errors |
+| `test_claude_service.py` | Model ID, system/user prompt split, thinking-block filtering, error propagation |
 
 ---
 
@@ -250,16 +264,16 @@ cd backend && pytest            # backend
 
 ## Project status
 
-**Working and verified:** backend boots and serves all endpoints; Qdrant collection auto-creates; Google Drive authentication and the folder restriction work against the real API; the frontend renders and is correctly wired to the backend; 12/12 backend tests, `npm run lint`, and `npm run build` all pass.
+**Working and verified:** backend boots and serves all endpoints; Qdrant collection auto-creates; Google Drive authentication and the folder restriction work against the real API; the frontend renders and is correctly wired to the backend; 17/17 backend tests, `npm run lint`, and `npm run build` all pass.
 
-**Not yet verified end-to-end:** no document has been successfully ingested, and no citation has been generated or clicked in the running app. The Gemini project currently returns `403 PERMISSION_DENIED — Your project has been denied access`, which blocks both embeddings and generation. This is an account-level issue requiring Google support, not a code defect. Until it clears, the spec's acceptance criteria remain unproven.
+**Not yet verified end-to-end:** no document has been successfully ingested, and no citation has been generated or clicked in the running app. The Gemini project currently returns `403 PERMISSION_DENIED — Your project has been denied access`, which blocks embeddings and therefore both ingest and retrieval. This is an account-level issue requiring Google support, not a code defect. Generation now runs on Claude and is unaffected, but it cannot be exercised until retrieval works. Until it clears, the spec's acceptance criteria remain unproven.
 
 **Known rough edges:**
 
 - Ingest is synchronous and full-refresh — it re-embeds every document on every run. Incremental ingest keyed on Drive `modifiedTime` would be the natural next step.
 - Ingest status is in-memory and resets on backend restart.
 - `session_id` is accepted by the chat endpoint but no server-side conversation history is kept; each request is independent.
-- Dependencies are declared in both `backend/pyproject.toml` and `backend/requirements.txt`; they currently agree, but `pyproject.toml` is the canonical source.
+- The app depends on two model providers (Gemini for embeddings, Anthropic for generation) and so needs both API keys configured.
 
 ---
 

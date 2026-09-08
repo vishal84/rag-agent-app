@@ -1,11 +1,12 @@
 from fastapi.testclient import TestClient
 
-from app.dependencies import get_gemini_service, get_qdrant_service
+from app.dependencies import get_claude_service, get_gemini_service, get_qdrant_service
 from app.main import app
 
 
-def make_client(gemini_mock, qdrant_mock):
+def make_client(gemini_mock, claude_mock, qdrant_mock):
     app.dependency_overrides[get_gemini_service] = lambda: gemini_mock
+    app.dependency_overrides[get_claude_service] = lambda: claude_mock
     app.dependency_overrides[get_qdrant_service] = lambda: qdrant_mock
     client = TestClient(app)
     return client
@@ -18,7 +19,9 @@ def teardown_function():
 def test_chat_returns_answer_and_citations(mocker):
     gemini_mock = mocker.Mock()
     gemini_mock.embed_query.return_value = [0.1, 0.2, 0.3]
-    gemini_mock.generate_answer.return_value = "The sky is blue [Doc.pdf, p. 2]."
+
+    claude_mock = mocker.Mock()
+    claude_mock.generate_answer.return_value = "The sky is blue [Doc.pdf, p. 2]."
 
     qdrant_mock = mocker.Mock()
     qdrant_mock.search.return_value = [
@@ -32,7 +35,7 @@ def test_chat_returns_answer_and_citations(mocker):
         }
     ]
 
-    client = make_client(gemini_mock, qdrant_mock)
+    client = make_client(gemini_mock, claude_mock, qdrant_mock)
     response = client.post("/api/chat", json={"message": "why is the sky blue?", "session_id": None})
 
     assert response.status_code == 200
@@ -49,18 +52,20 @@ def test_chat_returns_answer_and_citations(mocker):
 
     gemini_mock.embed_query.assert_called_once_with("why is the sky blue?")
     qdrant_mock.search.assert_called_once()
-    gemini_mock.generate_answer.assert_called_once()
+    claude_mock.generate_answer.assert_called_once()
 
 
 def test_chat_returns_empty_citations_when_no_matches(mocker):
     gemini_mock = mocker.Mock()
     gemini_mock.embed_query.return_value = [0.1, 0.2, 0.3]
-    gemini_mock.generate_answer.return_value = "I don't have information on that."
+
+    claude_mock = mocker.Mock()
+    claude_mock.generate_answer.return_value = "I don't have information on that."
 
     qdrant_mock = mocker.Mock()
     qdrant_mock.search.return_value = []
 
-    client = make_client(gemini_mock, qdrant_mock)
+    client = make_client(gemini_mock, claude_mock, qdrant_mock)
     response = client.post("/api/chat", json={"message": "unrelated question"})
 
     assert response.status_code == 200

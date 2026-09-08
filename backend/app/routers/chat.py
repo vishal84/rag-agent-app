@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from app.dependencies import get_gemini_service, get_qdrant_service
+from app.dependencies import get_claude_service, get_gemini_service, get_qdrant_service
 from app.schemas import ChatRequest, ChatResponse, Citation
+from app.services.claude_service import ClaudeService
 from app.services.gemini_service import GeminiService
 from app.services.qdrant_service import QdrantService
 
@@ -15,11 +16,12 @@ SNIPPET_LENGTH = 300
 def chat(
     request: ChatRequest,
     gemini: GeminiService = Depends(get_gemini_service),
+    claude: ClaudeService = Depends(get_claude_service),
     qdrant: QdrantService = Depends(get_qdrant_service),
 ) -> ChatResponse:
     query_vector = gemini.embed_query(request.message)
     results = qdrant.search(query_vector, top_k=TOP_K)
-    answer = gemini.generate_answer(request.message, results)
+    answer = claude.generate_answer(request.message, results)
     citations = [
         Citation(
             doc_name=result["doc_name"],

@@ -3,7 +3,6 @@ from google.genai import errors
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 EMBEDDING_MODEL = "gemini-embedding-001"
-GENERATION_MODEL = "gemini-flash-latest"
 EMBED_BATCH_SIZE = 100  # Gemini's batchEmbedContents caps at 100 requests per call
 
 
@@ -20,7 +19,13 @@ _retry_on_rate_limit = retry(
 
 
 class GeminiService:
-    """Wraps the google-genai SDK for embeddings and grounded chat generation."""
+    """Wraps the google-genai SDK for embeddings.
+
+    Answer generation lives in ClaudeService; this class is the embedding half
+    of the pipeline only. The two are deliberately separate because the vector
+    store is pinned to this model's dimensionality, while the generation model
+    can be swapped freely.
+    """
 
     def __init__(self, api_key: str):
         self._client = genai.Client(api_key=api_key)
@@ -39,20 +44,3 @@ class GeminiService:
 
     def embed_query(self, text: str) -> list[float]:
         return self.embed_texts([text])[0]
-
-    @_retry_on_rate_limit
-    def generate_answer(self, query: str, chunks: list[dict]) -> str:
-        context = "\n\n".join(
-            f"[{chunk['doc_name']}, p. {chunk['page_number']}]\n{chunk['text']}" for chunk in chunks
-        )
-        prompt = (
-            "You are a helpful assistant answering questions using only the document excerpts below.\n"
-            "Cite every factual claim inline in the exact format [DocName, p. X], using the document name "
-            "and page number given with each excerpt. If the excerpts don't contain the answer, say so "
-            "instead of guessing.\n\n"
-            f"Document excerpts:\n{context}\n\n"
-            f"Question: {query}\n"
-            "Answer with inline citations:"
-        )
-        response = self._client.models.generate_content(model=GENERATION_MODEL, contents=prompt)
-        return response.text

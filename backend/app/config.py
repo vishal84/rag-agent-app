@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=str(REPO_ROOT_ENV), extra="ignore")
 
     GEMINI_API_KEY: str
+    CLAUDE_API_KEY: str
     GOOGLE_DRIVE_FOLDER_ID: str
     QDRANT_URL: str
     QDRANT_COLLECTION: str

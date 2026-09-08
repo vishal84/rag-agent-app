@@ -2,7 +2,7 @@
 
 FastAPI backend that ingests PDFs from a fixed Google Drive folder, chunks and
 embeds them with Gemini, stores vectors in Qdrant, and answers chat queries
-with page-level citations.
+with Claude, carrying page-level citations.
 
 ## Setup
 
@@ -19,7 +19,7 @@ pip install -e .
 ```
 
 Configuration is read from the `.env` file at the repo root (see
-`.env.example` there for the required keys: `GEMINI_API_KEY`,
+`.env.example` there for the required keys: `GEMINI_API_KEY`, `CLAUDE_API_KEY`,
 `GOOGLE_DRIVE_FOLDER_ID`, `QDRANT_URL`, `QDRANT_COLLECTION`,
 `GOOGLE_APPLICATION_CREDENTIALS`, `BACKEND_CORS_ORIGINS`).
 
@@ -53,5 +53,5 @@ cd backend
 pytest
 ```
 
-All external SDKs (Google GenAI, Google Drive API, Qdrant) are mocked in
-tests, so no network access or real credentials are required.
+All external SDKs (Google GenAI, Anthropic, Google Drive API, Qdrant) are mocked
+in tests, so no network access or real credentials are required.

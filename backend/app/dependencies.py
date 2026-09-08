@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from app.config import get_settings
+from app.services.claude_service import ClaudeService
 from app.services.drive_service import DriveService
 from app.services.gemini_service import GeminiService
 from app.services.qdrant_service import QdrantService
@@ -19,6 +20,12 @@ def get_drive_service() -> DriveService:
 def get_gemini_service() -> GeminiService:
     settings = get_settings()
     return GeminiService(api_key=settings.GEMINI_API_KEY)
+
+
+@lru_cache
+def get_claude_service() -> ClaudeService:
+    settings = get_settings()
+    return ClaudeService(api_key=settings.CLAUDE_API_KEY)
 
 
 @lru_cache
