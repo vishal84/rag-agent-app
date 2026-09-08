@@ -147,3 +147,6 @@ ehthumbs.db
 !.vscode/launch.json
 !.vscode/extensions.json
 
+
+# Local Qdrant vector DB data (runtime, not source)
+qdrant_storage/
