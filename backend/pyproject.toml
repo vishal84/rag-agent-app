@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-agent-backend"
+version = "0.1.0"
+description = "FastAPI backend for RAG Agent application with Google Drive ingestion, Gemini embeddings, and Qdrant vector store."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn[standard]>=0.34.0",
+    "pydantic-settings>=2.7.1",
+    "google-genai>=2.22.0",
+    "google-api-python-client>=2.158.0",
+    "google-auth>=2.57.1",
+    "tenacity>=9.1.4",
+    "qdrant-client>=1.12.2",
+    "pypdf>=5.1.0",
+    "python-multipart>=0.0.20",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
+    "httpx>=0.28.1",
+    "pytest-mock>=3.14.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
