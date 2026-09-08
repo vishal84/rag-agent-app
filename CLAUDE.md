@@ -13,9 +13,10 @@
 - **Google Drive Integration**: Fixed Target Folder ID: `1RxJbIKBJ1SfiPO4wj4skXbxgaIYguUO4`.
 
 ## Environment Variables
-- `GEMINI_API_KEY`: `AIzaSyAzbBtYPJf-5COuYWVYMY5kQ_DjQoS7mKs`
-- `GOOGLE_DRIVE_FOLDER_ID`: `1RxJbIKBJ1SfiPO4wj4skXbxgaIYguUO4`
-- `QDRANT_URL`: `http://localhost:6333`
+Environment variables are defined in `.env` (gitignored, local values) with `.env.example` as the checked-in template. Required variables:
+- `GEMINI_API_KEY`: Your Gemini API key.
+- `GOOGLE_DRIVE_FOLDER_ID`: Target Google Drive folder ID.
+- `QDRANT_URL`: Local Qdrant instance URL.
 
 ## Verification Commands
 - `npm run lint` & `npm run build` (Frontend)

@@ -1,5 +1,5 @@
 ---
-description: Automatically creates a Git feature branch, generates a Spec Kit file, and initializes implementation.
+description: Automatically creates a Git feature branch, generates an active-feature file, and initializes implementation.
 allowed-tools: Bash, WriteFile, ReadFile
 ---
 
