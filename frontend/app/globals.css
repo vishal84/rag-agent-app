@@ -5,57 +5,57 @@
 @layer base {
   /* Channel-only triplets: required for Tailwind's `<alpha-value>` syntax. */
   :root {
-    --md-primary: 103 80 164;
+    --md-primary: 0 150 136;
     --md-on-primary: 255 255 255;
-    --md-primary-container: 234 221 255;
-    --md-on-primary-container: 33 0 93;
-    --md-secondary-container: 232 222 248;
-    --md-on-secondary-container: 29 25 43;
-    --md-surface: 254 247 255;
-    --md-on-surface: 29 27 32;
-    --md-surface-container-low: 247 242 250;
-    --md-surface-container: 243 237 247;
-    --md-surface-container-high: 236 230 240;
-    --md-surface-container-highest: 230 224 233;
-    --md-surface-variant: 231 224 236;
-    --md-on-surface-variant: 73 69 79;
-    --md-outline: 121 116 126;
-    --md-outline-variant: 202 196 208;
+    --md-primary-container: 177 243 235;
+    --md-on-primary-container: 0 54 51;
+    --md-secondary-container: 186 228 247;
+    --md-on-secondary-container: 0 51 75;
+    --md-surface: 254 251 250;
+    --md-on-surface: 26 27 31;
+    --md-surface-container-low: 247 243 241;
+    --md-surface-container: 242 237 235;
+    --md-surface-container-high: 235 229 227;
+    --md-surface-container-highest: 229 223 221;
+    --md-surface-variant: 222 211 207;
+    --md-on-surface-variant: 70 70 70;
+    --md-outline: 119 108 104;
+    --md-outline-variant: 202 190 187;
     --md-error: 179 38 30;
     --md-on-error: 255 255 255;
     --md-error-container: 249 222 220;
     --md-on-error-container: 65 14 11;
     --md-scrim: 0 0 0;
-    --md-inverse-surface: 50 47 53;
-    --md-inverse-on-surface: 245 239 247;
-    --md-inverse-primary: 208 188 255;
+    --md-inverse-surface: 48 49 51;
+    --md-inverse-on-surface: 247 242 240;
+    --md-inverse-primary: 129 244 234;
   }
 
   .dark {
-    --md-primary: 208 188 255;
-    --md-on-primary: 56 30 114;
-    --md-primary-container: 79 55 139;
-    --md-on-primary-container: 234 221 255;
-    --md-secondary-container: 74 68 88;
-    --md-on-secondary-container: 232 222 248;
-    --md-surface: 20 18 24;
-    --md-on-surface: 230 224 233;
-    --md-surface-container-low: 29 27 32;
-    --md-surface-container: 33 31 38;
-    --md-surface-container-high: 43 41 48;
-    --md-surface-container-highest: 54 52 59;
-    --md-surface-variant: 73 69 79;
-    --md-on-surface-variant: 202 196 208;
-    --md-outline: 147 143 153;
-    --md-outline-variant: 73 69 79;
+    --md-primary: 129 244 234;
+    --md-on-primary: 0 104 99;
+    --md-primary-container: 0 120 115;
+    --md-on-primary-container: 177 243 235;
+    --md-secondary-container: 0 79 112;
+    --md-on-secondary-container: 186 228 247;
+    --md-surface: 26 27 31;
+    --md-on-surface: 228 226 224;
+    --md-surface-container-low: 33 34 38;
+    --md-surface-container: 39 41 44;
+    --md-surface-container-high: 49 51 55;
+    --md-surface-container-highest: 60 62 66;
+    --md-surface-variant: 70 70 70;
+    --md-on-surface-variant: 198 184 180;
+    --md-outline: 172 161 157;
+    --md-outline-variant: 70 70 70;
     --md-error: 242 184 181;
     --md-on-error: 96 20 16;
     --md-error-container: 140 29 24;
     --md-on-error-container: 249 222 220;
     --md-scrim: 0 0 0;
-    --md-inverse-surface: 230 224 233;
-    --md-inverse-on-surface: 50 47 53;
-    --md-inverse-primary: 103 80 164;
+    --md-inverse-surface: 229 223 221;
+    --md-inverse-on-surface: 48 49 51;
+    --md-inverse-primary: 0 150 136;
   }
 
   html,
