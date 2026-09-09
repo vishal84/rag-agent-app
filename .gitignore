@@ -150,3 +150,6 @@ ehthumbs.db
 
 # Local Qdrant vector DB data (runtime, not source)
 qdrant_storage/
+
+# PID files and logs written by the Makefile targets
+.run/
