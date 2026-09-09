@@ -1,73 +1,73 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Icon from "@/components/Icon";
-import { getDocuments, getIngestStatus, triggerIngest } from "@/lib/api";
 import type { DocumentSummary, IngestStatus } from "@/types/chat";
 
 interface DocumentSidebarProps {
+  documents: DocumentSummary[];
+  status: IngestStatus | null;
+  ingesting: boolean;
+  error: string | null;
+  onIngest: () => void;
   onNavigate?: () => void;
+  header?: React.ReactNode;
 }
 
-export default function DocumentSidebar({ onNavigate }: DocumentSidebarProps) {
-  const [documents, setDocuments] = useState<DocumentSummary[]>([]);
-  const [status, setStatus] = useState<IngestStatus | null>(null);
-  const [ingesting, setIngesting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+function ErrorBlock({ message }: { message: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [summary, ...rest] = message.split(". ");
+  const detail = rest.join(". ").trim();
 
-  async function loadDocuments() {
-    try {
-      const docs = await getDocuments();
-      setDocuments(docs);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load documents.");
-    }
-  }
+  return (
+    <div className="mt-3 rounded-sm bg-error-container px-3 py-2 text-body-small text-on-error-container">
+      <p className="break-words">{summary.trim()}</p>
+      {detail && (
+        <>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="focus-ring mt-1 rounded-xs underline underline-offset-2"
+          >
+            {expanded ? "Hide details" : "Show details"}
+          </button>
+          {expanded && <p className="mt-1 break-words opacity-80">{detail}</p>}
+        </>
+      )}
+    </div>
+  );
+}
 
-  async function loadStatus() {
-    try {
-      const s = await getIngestStatus();
-      setStatus(s);
-    } catch {
-      // status is best-effort; ignore failures here
-    }
-  }
-
-  useEffect(() => {
-    loadDocuments();
-    loadStatus();
-  }, []);
-
-  async function handleIngest() {
-    setIngesting(true);
-    try {
-      await triggerIngest();
-      await Promise.all([loadDocuments(), loadStatus()]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to trigger ingest.");
-    } finally {
-      setIngesting(false);
-    }
-  }
-
+export default function DocumentSidebar({
+  documents,
+  status,
+  ingesting,
+  error,
+  onIngest,
+  onNavigate,
+  header,
+}: DocumentSidebarProps) {
   return (
     <div className="flex h-full flex-col bg-surface-container-low p-4 medium:rounded-lg">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-title-medium text-on-surface">Documents</h2>
-        <button
-          type="button"
-          onClick={handleIngest}
-          disabled={ingesting}
-          className="state-layer focus-ring flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-2 text-label-large text-on-secondary-container disabled:bg-on-surface/[0.12] disabled:text-on-surface/[0.38]"
-        >
-          <Icon
-            name="refresh"
-            size={18}
-            className={ingesting ? "animate-spin motion-reduce:animate-none" : ""}
-          />
-          Re-ingest
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onIngest}
+            disabled={ingesting}
+            className="state-layer focus-ring flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-2 text-label-large text-on-secondary-container disabled:bg-on-surface/[0.12] disabled:text-on-surface/[0.38]"
+          >
+            <Icon
+              name="refresh"
+              size={20}
+              className={ingesting ? "animate-spin motion-reduce:animate-none" : ""}
+            />
+            Re-ingest
+          </button>
+          {header}
+        </div>
       </div>
 
       {status && (
@@ -77,17 +77,13 @@ export default function DocumentSidebar({ onNavigate }: DocumentSidebarProps) {
             Indexed: {status.documents_processed} docs / {status.chunks_upserted} chunks
           </p>
           {status.last_run_at && <p>Last run: {new Date(status.last_run_at).toLocaleString()}</p>}
-          {status.error && <p className="mt-1 break-words text-error">{status.error}</p>}
         </div>
       )}
 
-      {error && (
-        <p className="mt-3 rounded-sm bg-error-container px-3 py-2 text-body-small text-on-error-container">
-          {error}
-        </p>
-      )}
+      {status?.error && <ErrorBlock message={status.error} />}
+      {error && <ErrorBlock message={error} />}
 
-      <ul className="mt-3 flex-1 space-y-1 overflow-y-auto">
+      <ul className="-mx-1 mt-3 flex-1 space-y-1 overflow-y-auto px-1">
         {documents.map((doc) => (
           <li key={doc.file_id}>
             <button

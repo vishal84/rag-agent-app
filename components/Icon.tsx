@@ -13,11 +13,13 @@ export type IconName =
 interface IconProps {
   name: IconName;
   size?: number;
-  filled?: boolean;
   className?: string;
 }
 
-export default function Icon({ name, size = 24, filled = false, className = "" }: IconProps) {
+export default function Icon({ name, size = 24, className = "" }: IconProps) {
+  // The stylesheet is requested at opsz 20..48; anything outside clamps anyway.
+  const opsz = Math.min(48, Math.max(20, size));
+
   return (
     <span
       className={`icon ${className}`}
@@ -26,7 +28,7 @@ export default function Icon({ name, size = 24, filled = false, className = "" }
         fontSize: size,
         width: size,
         height: size,
-        fontVariationSettings: `"FILL" ${filled ? 1 : 0}, "wght" 400, "GRAD" 0, "opsz" ${size}`,
+        fontVariationSettings: `"FILL" 0, "wght" 400, "GRAD" 0, "opsz" ${opsz}`,
       }}
     >
       {name}

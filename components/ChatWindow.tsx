@@ -112,7 +112,7 @@ export default function ChatWindow() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
           disabled={loading}
-          className="focus-ring min-w-0 flex-1 rounded-full border border-outline bg-surface px-4 py-2.5 text-body-large text-on-surface placeholder:text-on-surface-variant disabled:bg-on-surface/[0.12] disabled:text-on-surface/[0.38]"
+          className="focus-ring h-12 min-w-0 flex-1 rounded-full border border-outline bg-surface px-4 text-body-large text-on-surface placeholder:text-on-surface-variant disabled:bg-on-surface/[0.12] disabled:text-on-surface/[0.38]"
         />
         <button
           type="submit"

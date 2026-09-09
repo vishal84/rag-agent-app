@@ -96,8 +96,10 @@
     @apply opacity-0;
   }
 
+  /* outline rather than ring: ring-offset needs a background colour to paint,
+     and these controls sit on several different surface roles. */
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface;
+    @apply focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
 
   .icon {
