@@ -1,5 +1,7 @@
 # Feature Specification: RAG Agentic Chat UI with Page Level Drive Citations
 
+> In-flight companion spec: [Material Design 3 UI with Responsive Layout](./material-design-ui.md) — frontend presentation only, no change to the criteria below.
+
 ## 1. Goal & Requirements
 - Focus: Build an end-to-end agentic chat app with page-level Drive PDF citations.
 - Scope: Ingest files ONLY from target folder `1RxJbIKBJ1SfiPO4wj4skXbxgaIYguUO4`.
