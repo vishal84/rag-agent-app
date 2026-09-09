@@ -1,95 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { RefreshCw, FileText } from "lucide-react";
-import { getDocuments, getIngestStatus, triggerIngest } from "@/lib/api";
+import { useState } from "react";
+import Icon from "@/components/Icon";
 import type { DocumentSummary, IngestStatus } from "@/types/chat";
 
-export default function DocumentSidebar() {
-  const [documents, setDocuments] = useState<DocumentSummary[]>([]);
-  const [status, setStatus] = useState<IngestStatus | null>(null);
-  const [ingesting, setIngesting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface DocumentSidebarProps {
+  documents: DocumentSummary[];
+  status: IngestStatus | null;
+  ingesting: boolean;
+  error: string | null;
+  onIngest: () => void;
+  onNavigate?: () => void;
+  header?: React.ReactNode;
+}
 
-  async function loadDocuments() {
-    try {
-      const docs = await getDocuments();
-      setDocuments(docs);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load documents.");
-    }
-  }
-
-  async function loadStatus() {
-    try {
-      const s = await getIngestStatus();
-      setStatus(s);
-    } catch {
-      // status is best-effort; ignore failures here
-    }
-  }
-
-  useEffect(() => {
-    loadDocuments();
-    loadStatus();
-  }, []);
-
-  async function handleIngest() {
-    setIngesting(true);
-    try {
-      await triggerIngest();
-      await Promise.all([loadDocuments(), loadStatus()]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to trigger ingest.");
-    } finally {
-      setIngesting(false);
-    }
-  }
+function ErrorBlock({ message }: { message: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const [summary, ...rest] = message.split(". ");
+  const detail = rest.join(". ").trim();
 
   return (
-    <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-800">Documents</h2>
-        <button
-          type="button"
-          onClick={handleIngest}
-          disabled={ingesting}
-          className="flex items-center gap-1 rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        >
-          <RefreshCw size={12} className={ingesting ? "animate-spin" : ""} />
-          Re-ingest
-        </button>
+    <div className="mt-3 rounded-sm bg-error-container px-3 py-2 text-body-small text-on-error-container">
+      <p className="break-words">{summary.trim()}</p>
+      {detail && (
+        <>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            className="focus-ring mt-1 rounded-xs underline underline-offset-2"
+          >
+            {expanded ? "Hide details" : "Show details"}
+          </button>
+          {expanded && <p className="mt-1 break-words opacity-80">{detail}</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function DocumentSidebar({
+  documents,
+  status,
+  ingesting,
+  error,
+  onIngest,
+  onNavigate,
+  header,
+}: DocumentSidebarProps) {
+  return (
+    <div className="flex h-full flex-col bg-surface-container-low p-4 medium:rounded-lg">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-title-medium text-on-surface">Documents</h2>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onIngest}
+            disabled={ingesting}
+            className="state-layer focus-ring flex items-center gap-1.5 rounded-full bg-secondary-container px-4 py-2 text-label-large text-on-secondary-container disabled:bg-on-surface/[0.12] disabled:text-on-surface/[0.38]"
+          >
+            <Icon
+              name="refresh"
+              size={20}
+              className={ingesting ? "animate-spin motion-reduce:animate-none" : ""}
+            />
+            Re-ingest
+          </button>
+          {header}
+        </div>
       </div>
 
       {status && (
-        <div className="mt-2 rounded-md bg-slate-50 px-2 py-1.5 text-xs text-slate-500">
+        <div className="mt-3 rounded-sm bg-surface-container px-3 py-2 text-body-small text-on-surface-variant">
           <p>Status: {status.status}</p>
           <p>
             Indexed: {status.documents_processed} docs / {status.chunks_upserted} chunks
           </p>
           {status.last_run_at && <p>Last run: {new Date(status.last_run_at).toLocaleString()}</p>}
-          {status.error && <p className="mt-1 break-words text-red-600">{status.error}</p>}
         </div>
       )}
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {status?.error && <ErrorBlock message={status.error} />}
+      {error && <ErrorBlock message={error} />}
 
-      <ul className="mt-3 flex-1 space-y-1 overflow-y-auto">
+      <ul className="-mx-1 mt-3 flex-1 space-y-1 overflow-y-auto px-1">
         {documents.map((doc) => (
-          <li
-            key={doc.file_id}
-            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
-          >
-            <FileText size={14} className="shrink-0 text-slate-400" />
-            <span className="truncate" title={doc.doc_name}>
-              {doc.doc_name}
-            </span>
-            <span className="ml-auto shrink-0 text-slate-400">{doc.page_count}p</span>
+          <li key={doc.file_id}>
+            <button
+              type="button"
+              onClick={onNavigate}
+              className="state-layer focus-ring flex w-full items-center gap-3 rounded-full px-3 py-2.5 text-left text-label-large text-on-surface-variant"
+            >
+              <Icon name="description" size={20} className="shrink-0" />
+              <span className="truncate" title={doc.doc_name}>
+                {doc.doc_name}
+              </span>
+              <span className="ml-auto shrink-0 text-body-small">{doc.page_count}p</span>
+            </button>
           </li>
         ))}
         {documents.length === 0 && !error && (
-          <li className="px-2 py-1.5 text-xs text-slate-400">No documents indexed yet.</li>
+          <li className="px-3 py-2.5 text-body-medium text-on-surface-variant">
+            No documents indexed yet.
+          </li>
         )}
       </ul>
     </div>
