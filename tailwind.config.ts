@@ -84,6 +84,20 @@ const config: Config = {
       transitionTimingFunction: {
         emphasized: "cubic-bezier(0.2, 0, 0, 1)",
       },
+      keyframes: {
+        "drawer-in": {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+      },
+      animation: {
+        "drawer-in": "drawer-in 250ms cubic-bezier(0.2, 0, 0, 1)",
+        "fade-in": "fade-in 200ms ease-out",
+      },
     },
   },
   plugins: [],

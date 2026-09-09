@@ -79,7 +79,7 @@ export default function AppShell() {
       {drawerOpen && (
         <div className="expanded:hidden">
           <div
-            className="fixed inset-0 z-40 bg-scrim/40"
+            className="fixed inset-0 z-40 animate-fade-in bg-scrim/40 motion-reduce:animate-none"
             onClick={closeDrawer}
             aria-hidden="true"
           />
@@ -89,7 +89,7 @@ export default function AppShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Documents"
-            className="fixed inset-y-0 left-0 z-50 w-80 max-w-[80vw] overflow-hidden rounded-r-lg shadow-elevation-1 outline-none"
+            className="fixed inset-y-0 left-0 z-50 w-80 max-w-[80vw] animate-drawer-in overflow-hidden rounded-r-lg shadow-elevation-1 outline-none motion-reduce:animate-none"
           >
             <DocumentSidebar onNavigate={closeDrawer} />
           </div>

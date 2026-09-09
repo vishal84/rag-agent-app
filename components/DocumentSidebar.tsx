@@ -77,9 +77,7 @@ export default function DocumentSidebar({ onNavigate }: DocumentSidebarProps) {
             Indexed: {status.documents_processed} docs / {status.chunks_upserted} chunks
           </p>
           {status.last_run_at && <p>Last run: {new Date(status.last_run_at).toLocaleString()}</p>}
-          {status.error && (
-            <p className="mt-1 break-words text-on-error-container">{status.error}</p>
-          )}
+          {status.error && <p className="mt-1 break-words text-error">{status.error}</p>}
         </div>
       )}
 
