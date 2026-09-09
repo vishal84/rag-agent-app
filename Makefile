@@ -20,6 +20,7 @@ FRONTEND_PORT    := 3000
 FRONTEND_URL     := http://localhost:$(FRONTEND_PORT)
 
 RUN_DIR := .run
+FRONTEND_DIR := frontend
 VENV    := backend/.venv
 ENV_FILE := .env
 
@@ -89,7 +90,7 @@ help:
 
 install:
 	@echo '==> frontend dependencies'
-	npm install
+	cd $(FRONTEND_DIR) && npm install
 	@echo '==> backend virtualenv'
 	@if [ ! -x "$(VENV)/bin/python" ]; then \
 	  echo '  creating $(VENV)'; \
@@ -173,7 +174,7 @@ up-frontend:
 	  echo '  already listening on :$(FRONTEND_PORT)'; \
 	else \
 	  mkdir -p $(RUN_DIR); \
-	  ( exec npm run dev > '$(RUN_DIR)/frontend.log' 2>&1 ) & \
+	  ( cd $(FRONTEND_DIR) && exec npm run dev > '$(CURDIR)/$(RUN_DIR)/frontend.log' 2>&1 ) & \
 	  echo $$! > '$(RUN_DIR)/frontend.pid'; \
 	  echo '  started, logging to $(RUN_DIR)/frontend.log'; \
 	fi
@@ -225,8 +226,8 @@ test: check-venv
 	@echo '==> backend tests'
 	cd backend && .venv/bin/pytest
 	@echo '==> frontend lint and build'
-	npm run lint
-	npm run build
+	cd $(FRONTEND_DIR) && npm run lint
+	cd $(FRONTEND_DIR) && npm run build
 
 clean:
 	@$(MAKE) --no-print-directory down

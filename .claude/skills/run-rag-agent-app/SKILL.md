@@ -18,7 +18,7 @@ Verified present on macOS with Node v26.8.1, npm 11.19.0, Python 3.13.15, Docker
 - A repo-root `.env` with all six required vars **present** (see Gotchas — empty values still boot)
 
 ```bash
-npm install                       # frontend deps, includes playwright-core
+cd frontend && npm install        # frontend deps, includes playwright-core
 ```
 
 ## 1. Qdrant
@@ -57,7 +57,7 @@ cd backend && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 ## 3. Frontend
 
 ```bash
-npm run dev        # http://localhost:3000
+cd frontend && npm run dev        # http://localhost:3000
 ```
 
 ## Run: the driver (agent path)
@@ -95,12 +95,12 @@ It never raises — a failure comes back as `{"status":"error", ..., "error":"..
 
 ## Run: human path
 
-Three terminals: `docker start local-qdrant`, then `cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000`, then `npm run dev`. Open `http://localhost:3000`; API docs at `http://localhost:8000/docs`.
+Three terminals: `docker start local-qdrant`, then `cd backend && .venv/bin/uvicorn app.main:app --reload --port 8000`, then `cd frontend && npm run dev`. Open `http://localhost:3000`; API docs at `http://localhost:8000/docs`.
 
 ## Verification commands
 
 ```bash
-npm run lint && npm run build     # frontend
+cd frontend && npm run lint && npm run build   # frontend
 cd backend && .venv/bin/pytest    # 17 tests
 ```
 
