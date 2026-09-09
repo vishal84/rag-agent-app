@@ -44,11 +44,14 @@ class QdrantService:
         return len(points)
 
     def search(self, query_vector: list[float], top_k: int = 6) -> list[dict]:
-        results = self._client.search(
+        # `search()` was removed in qdrant-client 1.16; `query_points()` replaces it
+        # and returns a QueryResponse, so the hits live under `.points`.
+        results = self._client.query_points(
             collection_name=self._collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
-        )
+            with_payload=True,
+        ).points
         return [{"score": r.score, **r.payload} for r in results]
 
     def list_all_payloads(self) -> list[dict]:
