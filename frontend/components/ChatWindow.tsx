@@ -5,6 +5,7 @@ import Icon from "@/components/Icon";
 import { sendChatMessage } from "@/lib/api";
 import type { ChatMessage } from "@/types/chat";
 import CitationBadge from "@/components/CitationBadge";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 
 function newId() {
   return Math.random().toString(36).slice(2);
@@ -55,7 +56,7 @@ export default function ChatWindow() {
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex items-start gap-2 ${
+            className={`flex items-start gap-3 ${
               message.role === "user" ? "flex-row-reverse" : ""
             }`}
           >
@@ -69,15 +70,19 @@ export default function ChatWindow() {
               <Icon name={message.role === "user" ? "person" : "smart_toy"} size={18} />
             </div>
             <div
-              className={`max-w-[85%] rounded-lg px-4 py-2.5 text-body-large medium:max-w-[75%] ${
+              className={`max-w-[85%] rounded-lg px-4 py-3 medium:max-w-[75%] ${
                 message.role === "user"
                   ? "rounded-br-xs bg-primary text-on-primary"
-                  : "rounded-bl-xs bg-surface-container-high text-on-surface"
+                  : "rounded-bl-xs bg-surface-container text-on-surface"
               }`}
             >
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              {message.role === "user" ? (
+                <p className="whitespace-pre-wrap break-words text-body-large">{message.content}</p>
+              ) : (
+                <MarkdownRenderer content={message.content} />
+              )}
               {message.citations && message.citations.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-3 flex flex-wrap gap-1.5">
                   {message.citations.map((citation, idx) => (
                     <CitationBadge key={`${citation.file_id}-${citation.page_number}-${idx}`} citation={citation} />
                   ))}
