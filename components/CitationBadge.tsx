@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import Icon from "@/components/Icon";
 import type { Citation } from "@/types/chat";
 import PdfPreviewModal from "@/components/PdfPreviewModal";
 
@@ -18,10 +18,12 @@ export default function CitationBadge({ citation }: CitationBadgeProps) {
         type="button"
         onClick={() => setOpen(true)}
         title={citation.snippet}
-        className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100"
+        className="state-layer focus-ring inline-flex max-w-full items-center gap-1 rounded-full bg-secondary-container px-2 py-1 text-label-small text-on-secondary-container"
       >
-        <FileText size={12} />
-        {citation.doc_name}, p. {citation.page_number}
+        <Icon name="description" size={16} className="shrink-0" />
+        <span className="truncate">
+          {citation.doc_name}, p. {citation.page_number}
+        </span>
       </button>
       {open && <PdfPreviewModal citation={citation} onClose={() => setOpen(false)} />}
     </>
