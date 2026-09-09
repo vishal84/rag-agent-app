@@ -227,7 +227,37 @@ Lists ingested documents with page counts, shows the last ingest run's status an
 
 ## Running locally
 
-Three processes: Qdrant, the backend, and the frontend.
+Three processes: Qdrant, the backend, and the frontend. The `Makefile` starts
+them in the required order and waits for each to become healthy before starting
+the next.
+
+```bash
+cp .env.example .env   # then fill in your keys
+make install           # frontend deps, backend virtualenv
+make up                # Qdrant -> backend -> frontend
+```
+
+The app is at `http://localhost:3000` and the interactive API docs at
+`http://localhost:8000/docs`. Then trigger the first ingest:
+
+```bash
+make ingest
+```
+
+| Command | Effect |
+| --- | --- |
+| `make up` | Start all three services |
+| `make down` | Stop all three; the Qdrant container and its vectors are kept |
+| `make restart` | `down`, then `up` |
+| `make status` | Show which services are listening |
+| `make logs` | Tail the backend and frontend logs from `.run/` |
+| `make test` | Backend `pytest`, then frontend lint and build |
+| `make clean` | `down`, plus remove the Qdrant container and `.run/` |
+
+`make up` is safe to re-run: a service already listening on its port is left
+alone rather than started twice. Run `make help` for the full target list.
+
+### Running the services by hand
 
 ```bash
 # 1. Qdrant
@@ -245,13 +275,9 @@ npm install
 npm run dev
 ```
 
-Then trigger the first ingest:
-
-```bash
-curl -X POST http://localhost:8000/api/ingest
-```
-
-Interactive API docs are at `http://localhost:8000/docs`.
+Qdrant must be listening before the backend starts: `app/main.py` registers a
+startup hook that calls Qdrant immediately, so uvicorn aborts if port 6333 is
+closed.
 
 ### Verification
 
