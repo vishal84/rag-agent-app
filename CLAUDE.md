@@ -6,8 +6,8 @@
 3. **MCP Boundaries**: The frontend strictly interfaces with the backend server; the backend interacts with Google Drive and Qdrant via MCP tools.
 
 ## Architecture Specifications
-- **Frontend**: Next.js 14+ (App Router), React, Tailwind CSS, Lucide Icons.
-- **Backend API**: Python FastAPI exposing REST endpoints for the UI, consuming local MCP endpoints.
+- **Frontend** (`frontend/`): Next.js 14+ (App Router), React, Tailwind CSS, Lucide Icons.
+- **Backend API** (`backend/`): Python FastAPI exposing REST endpoints for the UI, consuming local MCP endpoints.
 - **Embeddings**: Gemini `gemini-embedding-001` (3072-dim) via Google GenAI SDK.
 - **Generation**: Claude `claude-sonnet-5` via the Anthropic SDK. Anthropic has no embeddings
   endpoint, so the embedding and generation providers are deliberately different.
@@ -22,5 +22,5 @@ Environment variables are defined in `.env` (gitignored, local values) with `.en
 - `QDRANT_URL`: Local Qdrant instance URL.
 
 ## Verification Commands
-- `npm run lint` & `npm run build` (Frontend)
-- `pytest` (Backend)
+- `npm run lint` & `npm run build` (Frontend, run from `frontend/`)
+- `pytest` (Backend, run from `backend/`)

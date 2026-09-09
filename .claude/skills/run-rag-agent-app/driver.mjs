@@ -6,10 +6,16 @@
 //
 // Flows: shots | chat | drawer | theme | all (default)
 
-import { chromium } from "playwright-core";
+import { createRequire } from "node:module";
 import { mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+// playwright-core is a frontend devDependency. Node resolves bare specifiers
+// from this file's own directory upward, which never reaches frontend/, so
+// resolve it against the frontend package root instead.
+const require = createRequire(new URL("../../../frontend/package.json", import.meta.url));
+const { chromium } = require("playwright-core");
 
 const args = process.argv.slice(2);
 const argOf = (name, fallback) => {

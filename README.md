@@ -185,27 +185,37 @@ Thin wrapper over `qdrant-client`: `ensure_collection()`, `upsert_chunks()`, `se
 
 ---
 
-### Frontend — Next.js App Router (repo root)
+### Frontend — Next.js App Router (`frontend/`)
 
 ```
-app/
-├── layout.tsx           Root layout
-├── page.tsx             Chat page — sidebar + chat window
-└── globals.css          Tailwind entry
-components/
-├── ChatWindow.tsx       Message list, input, chat API calls
-├── CitationBadge.tsx    [DocName, p. X] pill; opens the preview modal
-├── PdfPreviewModal.tsx  Iframe preview of the cited Drive page
-└── DocumentSidebar.tsx  Document list, ingest status, re-ingest button
-lib/api.ts               Typed fetch client for all four endpoints
-types/chat.ts            TS types mirroring the backend contract
+frontend/
+├── app/
+│   ├── layout.tsx           Root layout
+│   ├── page.tsx             Chat page — sidebar + chat window
+│   └── globals.css          Tailwind entry
+├── components/
+│   ├── AppShell.tsx         Responsive shell, drawer and theme state
+│   ├── ChatWindow.tsx       Message list, input, chat API calls
+│   ├── CitationBadge.tsx    [DocName, p. X] pill; opens the preview modal
+│   ├── PdfPreviewModal.tsx  Iframe preview of the cited Drive page
+│   └── DocumentSidebar.tsx  Document list, ingest status, re-ingest button
+├── lib/api.ts               Typed fetch client for all four endpoints
+├── types/chat.ts            TS types mirroring the backend contract
+└── next.config.js           Loads the repo-root .env (see below)
 ```
+
+The frontend keeps its own `package.json` and `node_modules/`, so every npm
+command runs from `frontend/`. There is still only one `.env`, at the repo root:
+`next.config.js` calls `loadEnvConfig` on the parent directory, because Next
+otherwise only reads a `.env` sitting beside it. Without that,
+`NEXT_PUBLIC_API_BASE_URL` would silently fall back to the default in
+`lib/api.ts`.
 
 Per the project's architectural boundary, the frontend talks **only** to the backend REST API — never to Google Drive or Qdrant directly.
 
-#### `lib/api.ts` and `types/chat.ts`
+#### `frontend/lib/api.ts` and `frontend/types/chat.ts`
 
-A small typed fetch client (`sendChatMessage`, `getDocuments`, `triggerIngest`, `getIngestStatus`) reading its base URL from `NEXT_PUBLIC_API_BASE_URL`. The types in `types/chat.ts` mirror the backend's Pydantic schemas exactly; keeping them in sync is what makes `npm run build` catch contract drift at compile time.
+A small typed fetch client (`sendChatMessage`, `getDocuments`, `triggerIngest`, `getIngestStatus`) reading its base URL from `NEXT_PUBLIC_API_BASE_URL`. The types in `frontend/types/chat.ts` mirror the backend's Pydantic schemas exactly; keeping them in sync is what makes `npm run build` catch contract drift at compile time.
 
 #### `ChatWindow.tsx`
 
@@ -271,6 +281,7 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 
 # 3. Frontend (http://localhost:3000)
+cd frontend
 npm install
 npm run dev
 ```
@@ -282,15 +293,15 @@ closed.
 ### Verification
 
 ```bash
-npm run lint && npm run build   # frontend
-cd backend && pytest            # backend
+cd frontend && npm run lint && npm run build   # frontend
+cd backend && pytest                          # backend
 ```
 
 ---
 
 ## Project status
 
-**Working and verified:** backend boots and serves all endpoints; Qdrant collection auto-creates; Google Drive authentication and the folder restriction work against the real API; the frontend renders and is correctly wired to the backend; 17/17 backend tests, `npm run lint`, and `npm run build` all pass.
+**Working and verified:** backend boots and serves all endpoints; Qdrant collection auto-creates; Google Drive authentication and the folder restriction work against the real API; the frontend renders and is correctly wired to the backend; 17/17 backend tests, and the frontend `npm run lint` and `npm run build`, all pass.
 
 **Not yet verified end-to-end:** no document has been successfully ingested, and no citation has been generated or clicked in the running app. The Gemini project currently returns `403 PERMISSION_DENIED — Your project has been denied access`, which blocks embeddings and therefore both ingest and retrieval. This is an account-level issue requiring Google support, not a code defect. Generation now runs on Claude and is unaffected, but it cannot be exercised until retrieval works. Until it clears, the spec's acceptance criteria remain unproven.
 
